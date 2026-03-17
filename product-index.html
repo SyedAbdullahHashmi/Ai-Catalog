@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Product Intake Form</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4f0;--card:#fff;--border:#e4e2dc;--border-focus:#111;
+  --text:#111;--muted:#666;--hint:#999;
+  --req:#c0392b;--opt-bg:#f0f7ff;--opt-text:#2563eb;
+  --chip-on:#111;--chip-on-text:#fff;
+  --radius:10px;--radius-sm:7px;--shadow:0 1px 3px rgba(0,0,0,.07)
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:1.5rem 1rem 5rem;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.page{max-width:640px;margin:0 auto}
+
+/* Header */
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--hint);margin-bottom:.35rem}
+h1{font-size:24px;font-weight:700;margin-bottom:.4rem;line-height:1.2}
+.subtitle{font-size:14px;color:var(--muted);margin-bottom:1.75rem}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.25rem 1.5rem;margin-bottom:1rem;box-shadow:var(--shadow)}
+.card-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding-bottom:.75rem;margin-bottom:1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* Fields */
+.field{margin-bottom:1.1rem}
+.field:last-child{margin-bottom:0}
+.field>label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text);margin-bottom:.3rem;flex-wrap:wrap}
+.req{color:var(--req);font-size:15px;line-height:1}
+.opt{font-size:10px;font-weight:600;color:var(--opt-text);background:var(--opt-bg);border-radius:4px;padding:1px 6px}
+.hint{font-size:12px;color:var(--hint);margin-bottom:.4rem;line-height:1.5}
+input[type=text],input[type=number],input[type=url],select,textarea{width:100%;padding:10px 12px;background:#fafaf8;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:14px;color:var(--text);transition:border-color .15s,box-shadow .15s;outline:none;-webkit-appearance:none;appearance:none}
+input:focus,select:focus,textarea:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px rgba(0,0,0,.06)}
+textarea{resize:vertical;min-height:80px;line-height:1.6}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+
+/* Grid */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
+@media(max-width:480px){.g2{grid-template-columns:1fr}}
+
+/* Error */
+.has-error input,.has-error select,.has-error textarea,.has-error .upload-area{border-color:var(--req)!important}
+.err{font-size:12px;color:var(--req);margin-top:4px;display:none}
+.has-error .err{display:block}
+
+/* Pill chips — platforms */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;width:0;height:0}
+.chip label{display:inline-flex;align-items:center;padding:8px 15px;background:#fafaf8;border:1.5px solid var(--border);border-radius:20px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s;user-select:none;white-space:nowrap}
+.chip input:checked+label{background:var(--chip-on);border-color:var(--chip-on);color:var(--chip-on-text)}
+.chip label:hover{border-color:#888;color:var(--text)}
+
+/* Locked platform chips */
+.chip.locked label{opacity:.35;cursor:not-allowed;pointer-events:none}
+.chip.locked input{pointer-events:none}
+
+/* Pill chips — checkboxes inside sections */
+.pill-group{display:flex;flex-wrap:wrap;gap:7px}
+.pill{position:relative}
+.pill input{position:absolute;opacity:0;width:0;height:0}
+.pill label{display:inline-flex;align-items:center;padding:6px 13px;background:#fafaf8;border:1.5px solid var(--border);border-radius:20px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;user-select:none}
+.pill input:checked+label{background:#111;border-color:#111;color:#fff}
+.pill label:hover{border-color:#888;color:var(--text)}
+
+/* Platform sections */
+.plt-section{display:none}
+.plt-section.on{display:block}
+.plt-note{font-size:12px;color:var(--muted);background:#fafaf8;border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;margin-bottom:1.1rem;line-height:1.7}
+.plt-note strong{color:var(--text)}
+
+/* Dynamic field rows — shown/hidden by JS */
+.dyn{display:none}
+.dyn.on{display:block}
+
+/* Image upload */
+.upload-area{border:2px dashed var(--border);border-radius:var(--radius-sm);padding:1.25rem;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;position:relative;background:#fafaf8}
+.upload-area:hover,.upload-area.drag-over{border-color:#111;background:#f0efe8}
+.upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{font-size:28px;margin-bottom:.35rem;display:block}
+.upload-label{font-size:13px;font-weight:600;color:var(--text);margin-bottom:.15rem}
+.upload-hint-txt{font-size:12px;color:var(--hint)}
+.upload-or{display:flex;align-items:center;gap:.5rem;margin:.65rem 0;color:var(--hint);font-size:12px}
+.upload-or::before,.upload-or::after{content:'';flex:1;height:1px;background:var(--border)}
+.img-preview{display:none;margin-top:.65rem;position:relative}
+.img-preview img{width:100%;max-height:180px;object-fit:contain;border-radius:var(--radius-sm);border:1px solid var(--border)}
+.rm-img{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;border:none;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+
+/* Submit */
+.btn-submit{width:100%;padding:14px;background:#111;color:#fff;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s;margin-top:1.5rem}
+.btn-submit:hover{opacity:.85}
+.btn-submit:disabled{opacity:.45;cursor:not-allowed}
+.submit-note{font-size:12px;color:var(--hint);text-align:center;margin-top:.6rem}
+
+/* Success */
+#success{display:none;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:2.5rem 1.5rem;text-align:center;margin-top:1rem}
+.ok-icon{width:52px;height:52px;border-radius:50%;background:#f0faf4;border:1px solid #a7f3d0;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem}
+#success h2{font-size:20px;font-weight:700;margin-bottom:.4rem}
+#success p{font-size:14px;color:var(--muted)}
+.id-tag{display:inline-block;background:#f5f4f0;border:1px solid var(--border);border-radius:6px;font-family:monospace;font-size:12px;padding:5px 10px;margin:3px 0;color:var(--text)}
+.btn-again{margin-top:1.5rem;padding:11px 24px;background:transparent;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .15s}
+.btn-again:hover{border-color:#111;color:#111}
+
+/* Toast */
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;opacity:0;transition:opacity .25s;pointer-events:none;z-index:9999;max-width:calc(100vw - 2rem);text-align:center}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="eyebrow">Catalog automation</div>
+<h1>Product Intake</h1>
+<p class="subtitle">Fill in your product details and select the platforms you're listing on.</p>
+
+<div id="form-view">
+
+<!-- ══ CORE INFO ══════════════════════════════════════════ -->
+<div class="card">
+  <div class="card-title">Core product info</div>
+
+  <div class="field" id="fw-brand">
+    <label>Brand name <span class="req">*</span></label>
+    <select id="brand-name"><option value="">Loading brands…</option></select>
+    <div class="err">Please select a brand</div>
+  </div>
+
+  <div class="g2">
+    <div class="field" id="fw-category">
+      <label>Product category <span class="req">*</span></label>
+      <div class="hint">Determines which platform fields appear</div>
+      <select id="category" onchange="onCategoryChange()">
+        <option value="">Select category…</option>
+        <option value="fashion">Fashion</option>
+        <option value="skincare">Skincare</option>
+        <option value="food">Food</option>
+        <option value="electronics">Electronics</option>
+        <option value="home_decor">Home decor</option>
+        <option value="jewelry">Jewelry</option>
+        <option value="accessories">Accessories</option>
+        <option value="other">Other</option>
+      </select>
+      <div class="err">Please select a category</div>
+    </div>
+    <div class="field" id="fw-price">
+      <label>Price (INR) <span class="req">*</span></label>
+      <div class="hint">Numbers only, no ₹</div>
+      <input type="number" id="price" placeholder="e.g. 499">
+      <div class="err">Please enter the price</div>
+    </div>
+  </div>
+
+  <!-- Image upload -->
+  <div class="field" id="fw-image">
+    <label>Product image <span class="req">*</span></label>
+    <div class="hint">Upload a photo or paste a public URL — Vision AI will analyse it</div>
+    <div class="upload-area" id="upload-area">
+      <input type="file" id="image-file" accept="image/*">
+      <span class="upload-icon">📷</span>
+      <div class="upload-label">Tap to take or upload a photo</div>
+      <div class="upload-hint-txt">JPG, PNG, WEBP · Max 10MB</div>
+    </div>
+    <div class="img-preview" id="img-preview">
+      <img id="preview-img" src="" alt="Preview">
+      <button class="rm-img" type="button" onclick="removeImage()">×</button>
+    </div>
+    <div class="upload-or"><span>or paste a URL</span></div>
+    <input type="url" id="image-url" placeholder="https://…">
+    <div class="err">Please provide a product image</div>
+  </div>
+
+  <div class="field">
+    <label>Product ID <span class="opt">optional — auto-generated if blank</span></label>
+    <input type="text" id="product-id" placeholder="e.g. SKU-001 — leave blank to auto-generate">
+  </div>
+</div>
+
+<!-- ══ PRODUCT DETAILS ════════════════════════════════════ -->
+<div class="card">
+  <div class="card-title">Product details <span style="font-size:11px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--hint)">— Vision AI fills from photo if blank</span></div>
+
+  <div class="field">
+    <label>Product name <span class="opt">optional</span></label>
+    <input type="text" id="product-name" placeholder="e.g. Vitamin C Face Serum with Niacinamide, 30ml">
+  </div>
+  <div class="field">
+    <label>Key features <span class="opt">optional</span></label>
+    <div class="hint">Raw notes, comma-separated — AI will polish these</div>
+    <textarea id="key-features" placeholder="e.g. pump dispenser, frosted glass bottle, 2% niacinamide, 30ml"></textarea>
+  </div>
+  <div class="field">
+    <label>Materials or ingredients <span class="opt">optional</span></label>
+    <textarea id="materials" placeholder="Skincare: ingredients · Fashion: fabric · Electronics: materials"></textarea>
+  </div>
+  <div class="field">
+    <label>Target customer override <span class="opt">optional</span></label>
+    <div class="hint">Leave blank to use the brand-level default</div>
+    <input type="text" id="target-customer" placeholder="e.g. Men aged 30–45 with oily skin">
+  </div>
+  <div class="field">
+    <label>Additional image URLs <span class="opt">optional</span></label>
+    <div class="hint">Comma-separated, up to 5 total including main image</div>
+    <input type="text" id="extra-images" placeholder="https://img1.com/a.jpg, https://img2.com/b.jpg">
+  </div>
+  <div class="field">
+    <label>Competitor product URL <span class="opt">optional</span></label>
+    <input type="url" id="competitor-url" placeholder="https://…">
+  </div>
+  <div class="field">
+    <label>Existing description <span class="opt">optional — triggers rewrite mode</span></label>
+    <textarea id="existing-desc" placeholder="Paste existing copy to rewrite in brand voice…"></textarea>
+  </div>
+</div>
+
+<!-- ══ AMAZON ═════════════════════════════════════════════ -->
+<div class="card plt-section" id="section-amazon">
+  <div class="card-title">Amazon</div>
+
+  <!-- Always shown -->
+  <div class="field" id="fw-az-pt">
+    <label>Product type taxonomy code <span class="req">*</span></label>
+    <div class="hint" id="az-pt-hint">Look up in Seller Central → Add a Product</div>
+    <input type="text" id="az-pt" placeholder="e.g. SKIN_MOISTURIZER">
+    <div class="err">Required for Amazon</div>
+  </div>
+  <div class="field" id="fw-az-itk">
+    <label>Item type keyword <span class="req">*</span></label>
+    <input type="text" id="az-itk" placeholder="e.g. face-serum, vitamin-c-serum">
+    <div class="err">Required for Amazon</div>
+  </div>
+  <div class="field">
+    <label>ASIN <span class="opt">optional — updates only</span></label>
+    <input type="text" id="az-asin" placeholder="e.g. B09XYZ1234 — leave blank for new listings">
+  </div>
+</div>
+
+<!-- ══ FLIPKART ═══════════════════════════════════════════ -->
+<div class="card plt-section" id="section-flipkart">
+  <div class="card-title">Flipkart</div>
+  <div class="plt-note" id="fk-note">
+    <strong>Required:</strong> HSN code, GST rate, Manufacturer name, Model number, Country of origin
+  </div>
+
+  <div class="g2">
+    <div class="field" id="fw-fk-hsn">
+      <label>HSN code <span class="req">*</span></label>
+      <div class="hint" id="fk-hsn-hint">8-digit code — look up at cbic-gst.gov.in</div>
+      <input type="text" id="fk-hsn" placeholder="e.g. 3304">
+      <div class="err">Required for Flipkart</div>
+    </div>
+    <div class="field" id="fw-fk-gst">
+      <label>GST tax rate <span class="req">*</span></label>
+      <select id="fk-gst">
+        <option value="">Select rate…</option>
+        <option>0%</option><option>3%</option><option>5%</option>
+        <option>12%</option><option>18%</option><option>28%</option>
+      </select>
+      <div class="err">Required for Flipkart</div>
+    </div>
+  </div>
+  <div class="field" id="fw-fk-mfr">
+    <label>Manufacturer name <span class="req">*</span></label>
+    <input type="text" id="fk-mfr" placeholder="e.g. XYZ Cosmetics Pvt. Ltd.">
+    <div class="err">Required for Flipkart</div>
+  </div>
+  <div class="g2">
+    <div class="field" id="fw-fk-model">
+      <label>Model number <span class="req">*</span></label>
+      <input type="text" id="fk-model" placeholder="Your SKU / model ID">
+      <div class="err">Required for Flipkart</div>
+    </div>
+    <div class="field" id="fw-fk-origin">
+      <label>Country of origin <span class="req">*</span></label>
+      <select id="fk-origin">
+        <option value="">Select…</option>
+        <option>India</option><option>China</option><option>South Korea</option>
+        <option>USA</option><option>France</option><option>Other</option>
+      </select>
+      <div class="err">Required for Flipkart</div>
+    </div>
+  </div>
+
+  <!-- Fashion/accessories only -->
+  <div class="dyn fk-fashion">
+    <div class="g2">
+      <div class="field">
+        <label>Pack of <span class="opt">optional</span></label>
+        <input type="number" id="fk-pack" placeholder="1" min="1">
+      </div>
+      <div class="field">
+        <label>Manufacturer address <span class="opt">optional</span></label>
+        <input type="text" id="fk-addr" placeholder="Full legal address">
+      </div>
+    </div>
+  </div>
+
+  <!-- Non-fashion: pack of still useful -->
+  <div class="dyn fk-general">
+    <div class="field">
+      <label>Pack of <span class="opt">optional</span></label>
+      <input type="number" id="fk-pack-g" placeholder="e.g. 1" min="1">
+    </div>
+    <div class="field">
+      <label>Manufacturer address <span class="opt">optional</span></label>
+      <textarea id="fk-addr-g" style="min-height:60px" placeholder="Full legal address of manufacturer"></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MYNTRA ═════════════════════════════════════════════ -->
+<div class="card plt-section" id="section-myntra">
+  <div class="card-title">Myntra</div>
+  <div class="plt-note">⚠️ Title limit: 60 chars strict · Min 5 images required</div>
+
+  <!-- Always shown for Myntra (all categories) -->
+  <div class="g2">
+    <div class="field" id="fw-my-gender">
+      <label>Gender <span class="req">*</span></label>
+      <select id="my-gender">
+        <option value="">Select…</option>
+        <option>Women</option><option>Men</option><option>Boys</option><option>Girls</option><option>Unisex</option>
+      </select>
+      <div class="err">Required for Myntra</div>
+    </div>
+    <div class="field" id="fw-my-age">
+      <label>Age group <span class="req">*</span></label>
+      <select id="my-age">
+        <option value="">Select…</option>
+        <option>Adult</option><option>Kids</option><option>Infant</option>
+      </select>
+      <div class="err">Required for Myntra</div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="field" id="fw-my-occasion">
+      <label>Occasion <span class="req">*</span></label>
+      <select id="my-occasion">
+        <option value="">Select…</option>
+        <option>Casual</option><option>Formal</option><option>Ethnic</option><option>Sports</option>
+        <option>Party</option><option>Wedding</option><option>Festive</option><option>Beach</option><option>Travel</option>
+      </select>
+      <div class="err">Required for Myntra</div>
+    </div>
+    <div class="field" id="fw-my-color">
+      <label>Primary color <span class="req">*</span></label>
+      <select id="my-color">
+        <option value="">Select…</option>
+        <option>Black</option><option>White</option><option>Navy Blue</option><option>Red</option>
+        <option>Green</option><option>Yellow</option><option>Pink</option><option>Purple</option>
+        <option>Orange</option><option>Brown</option><option>Grey</option><option>Beige</option>
+        <option>Off White</option><option>Maroon</option><option>Olive</option><option>Teal</option>
+        <option>Gold</option><option>Silver</option><option>Multicolor</option><option>Other</option>
+      </select>
+      <div class="err">Required for Myntra</div>
+    </div>
+  </div>
+
+  <!-- Fashion/Accessories only -->
+  <div class="dyn my-fashion" id="my-fashion-fields">
+    <div class="g2">
+      <div class="field" id="fw-my-fabric">
+        <label>Fabric <span class="req">*</span></label>
+        <select id="my-fabric">
+          <option value="">Select…</option>
+          <option>Cotton</option><option>Polyester</option><option>Silk</option><option>Rayon</option>
+          <option>Linen</option><option>Wool</option><option>Nylon</option><option>Denim</option>
+          <option>Velvet</option><option>Chiffon</option><option>Georgette</option><option>Other</option>
+        </select>
+        <div class="err">Required for Myntra fashion</div>
+      </div>
+      <div class="field" id="fw-my-fit">
+        <label>Fit <span class="req">*</span></label>
+        <select id="my-fit">
+          <option value="">Select…</option>
+          <option>Regular</option><option>Slim</option><option>Loose</option>
+          <option>Oversized</option><option>Relaxed</option><option>Straight</option>
+        </select>
+        <div class="err">Required for Myntra fashion</div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="field" id="fw-my-sleeve">
+        <label>Sleeve type <span class="req">*</span></label>
+        <select id="my-sleeve">
+          <option value="">Select…</option>
+          <option>Full Sleeve</option><option>Half Sleeve</option><option>Sleeveless</option>
+          <option>3/4 Sleeve</option><option>Not applicable</option>
+        </select>
+        <div class="err">Required for Myntra fashion</div>
+      </div>
+      <div class="field" id="fw-my-pattern">
+        <label>Pattern <span class="req">*</span></label>
+        <select id="my-pattern">
+          <option value="">Select…</option>
+          <option>Solid</option><option>Printed</option><option>Embroidered</option>
+          <option>Checked</option><option>Striped</option><option>Floral</option>
+          <option>Abstract</option><option>Geometric</option><option>Animal Print</option>
+        </select>
+        <div class="err">Required for Myntra fashion</div>
+      </div>
+    </div>
+    <div class="field" id="fw-my-sizes">
+      <label>Sizes available <span class="req">*</span></label>
+      <div class="hint">Select all that apply</div>
+      <div class="pill-group">
+        <div class="pill"><input type="checkbox" id="ms-xs"  value="XS"><label  for="ms-xs">XS</label></div>
+        <div class="pill"><input type="checkbox" id="ms-s"   value="S"><label   for="ms-s">S</label></div>
+        <div class="pill"><input type="checkbox" id="ms-m"   value="M"><label   for="ms-m">M</label></div>
+        <div class="pill"><input type="checkbox" id="ms-l"   value="L"><label   for="ms-l">L</label></div>
+        <div class="pill"><input type="checkbox" id="ms-xl"  value="XL"><label  for="ms-xl">XL</label></div>
+        <div class="pill"><input type="checkbox" id="ms-xxl" value="XXL"><label for="ms-xxl">XXL</label></div>
+        <div class="pill"><input type="checkbox" id="ms-fs"  value="Free Size"><label for="ms-fs">Free Size</label></div>
+      </div>
+      <div class="err">Select at least one size</div>
+    </div>
+  </div>
+
+  <!-- All categories: care instructions optional -->
+  <div class="field">
+    <label>Care instructions <span class="opt">optional</span></label>
+    <textarea id="my-care" style="min-height:60px" placeholder="e.g. Machine wash cold, Do not bleach…"></textarea>
+  </div>
+</div>
+
+<!-- ══ AJIO ═══════════════════════════════════════════════ -->
+<div class="card plt-section" id="section-ajio">
+  <div class="card-title">Ajio</div>
+
+  <!-- Fashion/Accessories: full set required -->
+  <div class="dyn aj-fashion" id="aj-fashion-fields">
+    <div class="plt-note"><strong>Required for fashion:</strong> Gender, Occasion, Fabric, Fit, Pattern, Color, Style code, Size chart, Country of origin, Care instructions</div>
+    <div class="g2">
+      <div class="field" id="fw-aj-gender">
+        <label>Gender <span class="req">*</span></label>
+        <select id="aj-gender">
+          <option value="">Select…</option>
+          <option>Women</option><option>Men</option><option>Boys</option><option>Girls</option><option>Unisex</option>
+        </select>
+        <div class="err">Required for Ajio</div>
+      </div>
+      <div class="field" id="fw-aj-occasion">
+        <label>Occasion <span class="req">*</span></label>
+        <select id="aj-occasion">
+          <option value="">Select…</option>
+          <option>Casual</option><option>Formal</option><option>Ethnic</option>
+          <option>Party</option><option>Sports</option><option>Festive</option><option>Workwear</option>
+        </select>
+        <div class="err">Required for Ajio</div>
+      </div>
+    </div>
+    <div class="field" id="fw-aj-fabric">
+      <label>Fabric composition <span class="req">*</span></label>
+      <div class="hint">Include percentage — e.g. 100% Cotton or 60% Cotton, 40% Polyester</div>
+      <input type="text" id="aj-fabric" placeholder="e.g. 100% Cotton">
+      <div class="err">Required for Ajio</div>
+    </div>
+    <div class="g2">
+      <div class="field" id="fw-aj-fit">
+        <label>Fit <span class="req">*</span></label>
+        <select id="aj-fit">
+          <option value="">Select…</option>
+          <option>Regular</option><option>Slim</option><option>Loose</option><option>Oversized</option>
+        </select>
+        <div class="err">Required for Ajio</div>
+      </div>
+      <div class="field" id="fw-aj-pattern">
+        <label>Pattern <span class="req">*</span></label>
+        <select id="aj-pattern">
+          <option value="">Select…</option>
+          <option>Solid</option><option>Printed</option><option>Striped</option>
+          <option>Checked</option><option>Embroidered</option><option>Geometric</option>
+        </select>
+        <div class="err">Required for Ajio</div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="field" id="fw-aj-color">
+        <label>Primary color <span class="req">*</span></label>
+        <select id="aj-color">
+          <option value="">Select…</option>
+          <option>Black</option><option>White</option><option>Olive Green</option><option>Navy Blue</option>
+          <option>Red</option><option>Burgundy</option><option>Cream</option><option>Beige</option>
+          <option>Grey</option><option>Pink</option><option>Yellow</option><option>Teal</option>
+          <option>Maroon</option><option>Multicolor</option><option>Other</option>
+        </select>
+        <div class="err">Required for Ajio</div>
+      </div>
+      <div class="field" id="fw-aj-style">
+        <label>Style code <span class="req">*</span></label>
+        <input type="text" id="aj-style" placeholder="e.g. RS-KUR-001">
+        <div class="err">Required for Ajio</div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="field" id="fw-aj-size">
+        <label>Size chart <span class="req">*</span></label>
+        <input type="text" id="aj-size" placeholder="e.g. XS/S/M/L/XL">
+        <div class="err">Required for Ajio</div>
+      </div>
+      <div class="field" id="fw-aj-origin">
+        <label>Country of origin <span class="req">*</span></label>
+        <select id="aj-origin">
+          <option value="">Select…</option>
+          <option>India</option><option>China</option><option>South Korea</option>
+          <option>USA</option><option>France</option><option>Other</option>
+        </select>
+        <div class="err">Required for Ajio</div>
+      </div>
+    </div>
+    <div class="field" id="fw-aj-care">
+      <label>Material care instructions <span class="req">*</span></label>
+      <textarea id="aj-care" style="min-height:60px" placeholder="e.g. Machine wash cold, hang to dry, do not iron"></textarea>
+      <div class="err">Required for Ajio</div>
+    </div>
+    <div class="field">
+      <label>Category path <span class="opt">optional</span></label>
+      <div class="hint">e.g. Men &gt; Clothing &gt; Tops &gt; T-Shirts</div>
+      <input type="text" id="aj-cat" placeholder="e.g. Women > Ethnic Wear > Kurtas">
+    </div>
+  </div>
+
+  <!-- Non-fashion categories on Ajio: just style code + origin -->
+  <div class="dyn aj-general" id="aj-general-fields">
+    <div class="plt-note"><strong>Required:</strong> Style code, Country of origin &nbsp;·&nbsp; <strong>Optional:</strong> Category path</div>
+    <div class="g2">
+      <div class="field" id="fw-aj-style-g">
+        <label>Style code <span class="req">*</span></label>
+        <input type="text" id="aj-style-g" placeholder="e.g. HMD-LAMP-042">
+        <div class="err">Required for Ajio</div>
+      </div>
+      <div class="field" id="fw-aj-origin-g">
+        <label>Country of origin <span class="req">*</span></label>
+        <select id="aj-origin-g">
+          <option value="">Select…</option>
+          <option>India</option><option>China</option><option>Other</option>
+        </select>
+        <div class="err">Required for Ajio</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Category path <span class="opt">optional</span></label>
+      <input type="text" id="aj-cat-g" placeholder="e.g. Home > Decor > Lamps">
+    </div>
+  </div>
+</div>
+
+<!-- ══ NYKAA ══════════════════════════════════════════════ -->
+<div class="card plt-section" id="section-nykaa">
+  <div class="card-title">Nykaa</div>
+
+  <!-- Only shown when skincare/food category selected -->
+  <div class="dyn ny-beauty" id="ny-beauty-fields">
+    <div class="plt-note"><strong>Required:</strong> Size, Unit, Skin type, Concern, Key ingredients, INCI list, How to use, Shelf life, Country of origin, Cruelty free, Vegan, Dermatologist tested &nbsp;·&nbsp; ⚠️ INCI list mandatory</div>
+    <div class="g2">
+      <div class="field" id="fw-ny-size">
+        <label>Product size <span class="req">*</span></label>
+        <input type="number" id="ny-size" placeholder="e.g. 30">
+        <div class="err">Required for Nykaa</div>
+      </div>
+      <div class="field" id="fw-ny-unit">
+        <label>Size unit <span class="req">*</span></label>
+        <select id="ny-unit">
+          <option value="">Select…</option>
+          <option>ml</option><option>g</option><option>oz</option><option>pieces</option>
+        </select>
+        <div class="err">Required for Nykaa</div>
+      </div>
+    </div>
+    <div class="field" id="fw-ny-skin">
+      <label>Skin type <span class="req">*</span></label>
+      <div class="hint">Select all that apply</div>
+      <div class="pill-group">
+        <div class="pill"><input type="checkbox" id="nyst-all"  value="All skin types"><label  for="nyst-all">All skin types</label></div>
+        <div class="pill"><input type="checkbox" id="nyst-norm" value="Normal"><label for="nyst-norm">Normal</label></div>
+        <div class="pill"><input type="checkbox" id="nyst-dry"  value="Dry"><label    for="nyst-dry">Dry</label></div>
+        <div class="pill"><input type="checkbox" id="nyst-oily" value="Oily"><label   for="nyst-oily">Oily</label></div>
+        <div class="pill"><input type="checkbox" id="nyst-comb" value="Combination"><label for="nyst-comb">Combination</label></div>
+        <div class="pill"><input type="checkbox" id="nyst-sens" value="Sensitive"><label   for="nyst-sens">Sensitive</label></div>
+      </div>
+      <div class="err">Select at least one skin type</div>
+    </div>
+    <div class="field" id="fw-ny-concern">
+      <label>Skin concern <span class="req">*</span></label>
+      <div class="hint">Select all that apply</div>
+      <div class="pill-group">
+        <div class="pill"><input type="checkbox" id="nyc-dark"   value="Dark Spots"><label   for="nyc-dark">Dark Spots</label></div>
+        <div class="pill"><input type="checkbox" id="nyc-bright" value="Brightening"><label  for="nyc-bright">Brightening</label></div>
+        <div class="pill"><input type="checkbox" id="nyc-dull"   value="Dullness"><label     for="nyc-dull">Dullness</label></div>
+        <div class="pill"><input type="checkbox" id="nyc-dry"    value="Dryness"><label      for="nyc-dry">Dryness</label></div>
+        <div class="pill"><input type="checkbox" id="nyc-oily"   value="Oiliness"><label     for="nyc-oily">Oiliness</label></div>
+        <div class="pill"><input type="checkbox" id="nyc-acne"   value="Acne"><label         for="nyc-acne">Acne</label></div>
+        <div class="pill"><input type="checkbox" id="nyc-age"    value="Anti-Ageing"><label  for="nyc-age">Anti-Ageing</label></div>
+        <div class="pill"><input type="checkbox" id="nyc-hydra"  value="Hydration"><label    for="nyc-hydra">Hydration</label></div>
+        <div class="pill"><input type="checkbox" id="nyc-pore"   value="Pore Minimising"><label for="nyc-pore">Pore Minimising</label></div>
+        <div class="pill"><input type="checkbox" id="nyc-pigm"   value="Pigmentation"><label for="nyc-pigm">Pigmentation</label></div>
+      </div>
+      <div class="err">Select at least one concern</div>
+    </div>
+    <div class="field" id="fw-ny-ingr">
+      <label>Key ingredients <span class="req">*</span></label>
+      <div class="hint">With percentages where known</div>
+      <textarea id="ny-ingr" style="min-height:60px" placeholder="e.g. Niacinamide 2%, Hyaluronic Acid 1%, Vitamin C 10%"></textarea>
+      <div class="err">Required for Nykaa</div>
+    </div>
+    <div class="field" id="fw-ny-inci">
+      <label>INCI ingredient list <span class="req">*</span></label>
+      <div class="hint">Standard international names only — "Niacinamide" not "Vitamin B3", "Aqua" not "Water"</div>
+      <textarea id="ny-inci" placeholder="Aqua, Niacinamide, Glycerin, Sodium Hyaluronate…"></textarea>
+      <div class="err">Required for Nykaa — listings rejected without this</div>
+    </div>
+    <div class="field" id="fw-ny-htu">
+      <label>How to use <span class="req">*</span></label>
+      <textarea id="ny-htu" style="min-height:60px" placeholder="Step 1: Cleanse. Step 2: Apply 2–3 drops to damp skin. Step 3: Follow with moisturiser."></textarea>
+      <div class="err">Required for Nykaa</div>
+    </div>
+    <div class="g2">
+      <div class="field" id="fw-ny-shelf">
+        <label>Shelf life (months) <span class="req">*</span></label>
+        <input type="number" id="ny-shelf" placeholder="e.g. 24">
+        <div class="err">Required for Nykaa</div>
+      </div>
+      <div class="field" id="fw-ny-origin">
+        <label>Country of origin <span class="req">*</span></label>
+        <select id="ny-origin">
+          <option value="">Select…</option>
+          <option>India</option><option>South Korea</option><option>France</option>
+          <option>USA</option><option>Japan</option><option>Other</option>
+        </select>
+        <div class="err">Required for Nykaa</div>
+      </div>
+    </div>
+    <div class="field" id="fw-ny-cf">
+      <label>Cruelty free? <span class="req">*</span></label>
+      <div class="pill-group">
+        <div class="pill"><input type="radio" name="ny-cf" id="nycf-y" value="Yes"><label for="nycf-y">Yes</label></div>
+        <div class="pill"><input type="radio" name="ny-cf" id="nycf-n" value="No"><label  for="nycf-n">No</label></div>
+      </div>
+      <div class="err">Required for Nykaa</div>
+    </div>
+    <div class="field" id="fw-ny-vegan">
+      <label>Vegan? <span class="req">*</span></label>
+      <div class="pill-group">
+        <div class="pill"><input type="radio" name="ny-vegan" id="nyvg-y" value="Yes"><label for="nyvg-y">Yes</label></div>
+        <div class="pill"><input type="radio" name="ny-vegan" id="nyvg-n" value="No"><label  for="nyvg-n">No</label></div>
+      </div>
+      <div class="err">Required for Nykaa</div>
+    </div>
+    <div class="field" id="fw-ny-derm">
+      <label>Dermatologist tested? <span class="req">*</span></label>
+      <div class="pill-group">
+        <div class="pill"><input type="radio" name="ny-derm" id="nydm-y"  value="Yes"><label        for="nydm-y">Yes</label></div>
+        <div class="pill"><input type="radio" name="ny-derm" id="nydm-n"  value="No"><label         for="nydm-n">No</label></div>
+        <div class="pill"><input type="radio" name="ny-derm" id="nydm-nt" value="Not Tested"><label for="nydm-nt">Not Tested</label></div>
+      </div>
+      <div class="err">Required for Nykaa</div>
+    </div>
+    <div class="field">
+      <label>Free from claims <span class="opt">optional</span></label>
+      <div class="pill-group">
+        <div class="pill"><input type="checkbox" id="nyff-par" value="Paraben Free"><label    for="nyff-par">Paraben Free</label></div>
+        <div class="pill"><input type="checkbox" id="nyff-sul" value="Sulphate Free"><label   for="nyff-sul">Sulphate Free</label></div>
+        <div class="pill"><input type="checkbox" id="nyff-alc" value="Alcohol Free"><label    for="nyff-alc">Alcohol Free</label></div>
+        <div class="pill"><input type="checkbox" id="nyff-fra" value="Fragrance Free"><label  for="nyff-fra">Fragrance Free</label></div>
+        <div class="pill"><input type="checkbox" id="nyff-sil" value="Silicone Free"><label   for="nyff-sil">Silicone Free</label></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Non-beauty category selected with Nykaa — warn user -->
+  <div class="dyn ny-mismatch" id="ny-mismatch">
+    <div class="plt-note" style="background:#fff8f0;border-color:#fcd9b0">
+      <strong>Note:</strong> Nykaa is a beauty &amp; wellness platform. It works best for Skincare and Food/wellness products. The fields above will appear once you select Skincare or Food as your product category.
+    </div>
+  </div>
+</div>
+
+<!-- ══ MEESHO ═════════════════════════════════════════════ -->
+<div class="card plt-section" id="section-meesho">
+  <div class="card-title">Meesho</div>
+  <div class="plt-note">Note: Meesho titles do not include your brand name &nbsp;·&nbsp; Buyers are value-conscious — clear specs matter most</div>
+
+  <div class="g2">
+    <div class="field" id="fw-me-mrp">
+      <label>MRP (INR) <span class="req">*</span></label>
+      <div class="hint">Printed max retail price</div>
+      <input type="number" id="me-mrp" placeholder="e.g. 599">
+      <div class="err">Required for Meesho</div>
+    </div>
+    <div class="field" id="fw-me-sell">
+      <label>Selling price (INR) <span class="req">*</span></label>
+      <div class="hint">Your price to Meesho — must be ≤ MRP</div>
+      <input type="number" id="me-sell" placeholder="e.g. 399">
+      <div class="err">Required for Meesho</div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="field" id="fw-me-pack">
+      <label>Pack of <span class="req">*</span></label>
+      <input type="number" id="me-pack" placeholder="e.g. 1" min="1">
+      <div class="err">Required for Meesho</div>
+    </div>
+    <div class="field" id="fw-me-origin">
+      <label>Country of origin <span class="req">*</span></label>
+      <select id="me-origin">
+        <option value="">Select…</option>
+        <option>India</option><option>China</option><option>Other</option>
+      </select>
+      <div class="err">Required for Meesho</div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="field" id="fw-me-color">
+      <label>Primary color <span class="req">*</span></label>
+      <select id="me-color">
+        <option value="">Select…</option>
+        <option>Black</option><option>White</option><option>Red</option><option>Blue</option>
+        <option>Navy Blue</option><option>Green</option><option>Yellow</option><option>Pink</option>
+        <option>Purple</option><option>Orange</option><option>Brown</option><option>Grey</option>
+        <option>Beige</option><option>Off White</option><option>Maroon</option><option>Multicolor</option><option>Other</option>
+      </select>
+      <div class="err">Required for Meesho</div>
+    </div>
+    <div class="field" id="fw-me-size">
+      <label>Size or dimensions <span class="req">*</span></label>
+      <input type="text" id="me-size" placeholder="e.g. Free Size or 30x40cm">
+      <div class="err">Required for Meesho</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ PLATFORM SELECTOR ══════════════════════════════════ -->
+<div class="card">
+  <div class="card-title">Platforms</div>
+  <div class="hint" style="margin-bottom:.85rem">Select all platforms this product will be listed on — only those sections will appear below</div>
+  <div class="chips" id="platform-chips">
+    <div class="chip" id="chip-amazon">  <input type="checkbox" id="plt-amazon"   value="amazon"><label   for="plt-amazon">Amazon</label></div>
+    <div class="chip" id="chip-flipkart"><input type="checkbox" id="plt-flipkart" value="flipkart"><label for="plt-flipkart">Flipkart</label></div>
+    <div class="chip" id="chip-myntra">  <input type="checkbox" id="plt-myntra"   value="myntra"><label   for="plt-myntra">Myntra</label></div>
+    <div class="chip" id="chip-ajio">    <input type="checkbox" id="plt-ajio"     value="ajio"><label     for="plt-ajio">Ajio</label></div>
+    <div class="chip" id="chip-nykaa">   <input type="checkbox" id="plt-nykaa"    value="nykaa"><label    for="plt-nykaa">Nykaa</label></div>
+    <div class="chip" id="chip-meesho">  <input type="checkbox" id="plt-meesho"   value="meesho"><label   for="plt-meesho">Meesho</label></div>
+  </div>
+  <div id="cat-lock-note" style="display:none;margin-top:.75rem;font-size:12px;color:var(--hint);padding:8px 10px;background:#fafaf8;border-radius:6px;border:1px solid var(--border)"></div>
+</div>
+
+<!-- ══ SUBMIT ════════════════════════════════════════════ -->
+<button class="btn-submit" id="btn-submit" type="button" onclick="handleSubmit()">Submit product</button>
+<p class="submit-note">Fields marked <span style="color:var(--req)">*</span> are required · Platform fields only validate for selected platforms · Category determines which platform fields appear</p>
+
+</div><!-- /form-view -->
+
+<!-- ══ SUCCESS ═══════════════════════════════════════════ -->
+<div id="success">
+  <div class="ok-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+  <h2>Product submitted</h2>
+  <p>Added to the catalog queue.</p>
+  <br>
+  <div><span class="id-tag" id="res-pid"></span></div>
+  <div><span class="id-tag" id="res-bid"></span></div>
+  <br>
+  <button class="btn-again" onclick="resetForm()">Submit another product</button>
+</div>
+
+</div><!-- /page -->
+<div id="toast"></div>
+
+<script>
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw0Y6STmjP1th100WtcHYiP_t8tDBxA1g3GOyRPanbdNctbheUOqZp7C2tjMNO46M169A/exec";
+
+// ── Read token + client from URL params ──────────────────────
+const URL_PARAMS   = new URLSearchParams(window.location.search);
+const CLIENT_TOKEN = URL_PARAMS.get('token') || '';
+const CLIENT_NAME  = URL_PARAMS.get('client') || '';
+
+// Show access denied if no token in URL
+if (!CLIENT_TOKEN) {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('form-view').style.display = 'none';
+    const denied = document.createElement('div');
+    denied.style.cssText = 'text-align:center;padding:3rem 1rem';
+    denied.innerHTML = '<h2 style="font-size:20px;margin-bottom:.5rem">Access restricted</h2>' +
+      '<p style="font-size:14px;color:#666">Use the link sent to your email to access this form.<br>Contact your account manager if you need a new link.</p>';
+    document.querySelector('.page').appendChild(denied);
+  });
+}
+
+// ── Category groups ───────────────────────────────────────────
+// fashion-like: apparel fields (fabric, fit, sleeve, pattern, sizes)
+const CAT_FASHION   = ["fashion","accessories"];
+// beauty-like: skincare fields (skin type, INCI, etc.)
+const CAT_BEAUTY    = ["skincare","food"];
+// general: everything else (electronics, home_decor, jewelry, other)
+
+function isFashion(cat){ return CAT_FASHION.includes(cat); }
+function isBeauty(cat) { return CAT_BEAUTY.includes(cat);  }
+
+// ── Category change → update dynamic fields + lock chips ─────
+function onCategoryChange() {
+  const cat = document.getElementById('category').value;
+  applyDynamicFields(cat);
+  updateChipLocks(cat);
+  updateAmazonHints(cat);
+  updateFlipkartHints(cat);
+}
+
+// Platform → allowed categories (empty = all categories allowed)
+const PLT_CATS = {
+  myntra:  ['fashion','accessories'],
+  ajio:    ['fashion','accessories'],
+  nykaa:   ['skincare','food'],
+  // amazon, flipkart, meesho: all categories — no lock
+};
+
+function updateChipLocks(cat) {
+  const note = document.getElementById('cat-lock-note');
+  const locked = [];
+
+  Object.entries(PLT_CATS).forEach(([plt, allowed]) => {
+    const chip = document.getElementById('chip-' + plt);
+    const cb   = document.getElementById('plt-' + plt);
+    if (!chip || !cb) return;
+
+    const isLocked = cat && !allowed.includes(cat);
+    chip.classList.toggle('locked', isLocked);
+
+    if (isLocked && cb.checked) {
+      // Uncheck and hide section if category no longer matches
+      cb.checked = false;
+      const sec = document.getElementById('section-' + plt);
+      if (sec) sec.classList.remove('on');
+    }
+
+    if (isLocked) locked.push(plt.charAt(0).toUpperCase() + plt.slice(1));
+  });
+
+  if (locked.length && cat) {
+    const catLabel = document.getElementById('category').options[document.getElementById('category').selectedIndex].text;
+    note.style.display = 'block';
+    note.textContent = locked.join(' and ') + (locked.length > 1 ? ' are' : ' is') +
+      ' not available for ' + catLabel + ' products and ' +
+      (locked.length > 1 ? 'have' : 'has') + ' been greyed out.';
+  } else {
+    note.style.display = 'none';
+    note.textContent = '';
+  }
+}
+
+function applyDynamicFields(cat) {
+  const fashion = isFashion(cat);
+  const beauty  = isBeauty(cat);
+  const hasVal  = !!cat;
+
+  // Myntra: apparel fields only for fashion
+  setVisible('my-fashion-fields', fashion && hasVal);
+
+  // Ajio: full fashion set vs minimal general set
+  setVisible('aj-fashion-fields', fashion && hasVal);
+  setVisible('aj-general-fields', !fashion && hasVal);
+
+  // Nykaa: beauty fields vs mismatch warning
+  setVisible('ny-beauty-fields',  beauty && hasVal);
+  setVisible('ny-mismatch',       !beauty && hasVal);
+
+  // Flipkart: fashion extras vs general extras
+  setVisible('fk-fashion', fashion && hasVal);
+  setVisible('fk-general', !fashion && hasVal);
+}
+
+function setVisible(cls, show) {
+  document.querySelectorAll('.' + cls).forEach(el => {
+    el.classList.toggle('on', show);
+  });
+}
+
+// ── Amazon hints per category ─────────────────────────────────
+const AZ_HINTS = {
+  fashion:     "e.g. SHIRT, KURTA, TROUSER, DRESS",
+  skincare:    "e.g. SKIN_MOISTURIZER, FACE_SERUM, TONER",
+  food:        "e.g. HEALTH_SUPPLEMENT, SNACK_FOOD, BEVERAGE",
+  electronics: "e.g. WIRELESS_ACCESSORY, HEADPHONES, POWER_BANK",
+  home_decor:  "e.g. HOME_DECOR, LAMP, WALL_ART",
+  jewelry:     "e.g. NECKLACE, EARRING, BRACELET",
+  accessories: "e.g. HANDBAG, WALLET, BELT",
+  other:       "Look up in Seller Central → Add a Product"
+};
+function updateAmazonHints(cat) {
+  const hint = document.getElementById('az-pt-hint');
+  if (hint && AZ_HINTS[cat]) hint.textContent = AZ_HINTS[cat];
+}
+
+// ── Flipkart HSN hints per category ──────────────────────────
+const FK_HSN_HINTS = {
+  skincare:    "Skincare/Cosmetics: 3304 or 3307",
+  food:        "Packaged Food: 2106 or 1904",
+  fashion:     "Apparel: 6109 (T-shirts), 6211 (outerwear)",
+  jewelry:     "Imitation Jewelry: 7117",
+  electronics: "Electronics: 8517 or 8518",
+  home_decor:  "Home Decor: 6912 or 9403",
+  accessories: "Bags/Accessories: 4202",
+  other:       "Look up at cbic-gst.gov.in"
+};
+function updateFlipkartHints(cat) {
+  const hint = document.getElementById('fk-hsn-hint');
+  if (hint && FK_HSN_HINTS[cat]) hint.textContent = FK_HSN_HINTS[cat] + " — verify at cbic-gst.gov.in";
+}
+
+// ── Platform chip → section toggle ───────────────────────────
+document.querySelectorAll('#platform-chips input').forEach(cb => {
+  cb.addEventListener('change', () => {
+    const sec = document.getElementById('section-' + cb.value);
+    if (sec) {
+      sec.classList.toggle('on', cb.checked);
+      if (cb.checked) {
+        // Re-apply dynamic fields for current category
+        const cat = document.getElementById('category').value;
+        if (cat) applyDynamicFields(cat);
+        setTimeout(() => sec.scrollIntoView({ behavior:'smooth', block:'start' }), 50);
+      }
+    }
+  });
+});
+
+// ── Load brands ───────────────────────────────────────────────
+async function loadBrands() {
+  const sel = document.getElementById('brand-name');
+  try {
+    const r = await fetch(WEB_APP_URL + "?action=brands&token=" + encodeURIComponent(CLIENT_TOKEN));
+    const d = await r.json();
+    if (d.error === 'invalid_token' || d.error === 'missing_token') {
+      sel.innerHTML = '<option value="">Access denied — invalid link</option>';
+      showToast('Invalid access token — use the link sent to your email');
+      return;
+    }
+    sel.innerHTML = '<option value="">Select brand…</option>';
+    (d.brands||[]).forEach(b => {
+      const o = document.createElement('option');
+      o.value = b; o.textContent = b; sel.appendChild(o);
+    });
+    // Pre-select brand if client name in URL matches
+    if (CLIENT_NAME) {
+      Array.from(sel.options).forEach(opt => {
+        if (opt.value.toLowerCase() === CLIENT_NAME.toLowerCase()) opt.selected = true;
+      });
+    }
+  } catch { sel.innerHTML = '<option value="">Could not load brands</option>'; }
+}
+loadBrands();
+
+// ── Image handling ────────────────────────────────────────────
+let imageBase64=null, imageName=null;
+const fileInput  = document.getElementById('image-file');
+const uploadArea = document.getElementById('upload-area');
+const imgPreview = document.getElementById('img-preview');
+const previewImg = document.getElementById('preview-img');
+
+fileInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 10*1024*1024) { showToast('Image must be under 10MB'); return; }
+  imageName = file.name;
+  // Compress image client-side before storing as base64
+  // This dramatically reduces upload size and server processing time
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      // Resize to max 1200px on longest side, quality 0.82
+      const MAX = 1200;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else       { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      imageBase64 = canvas.toDataURL('image/jpeg', 0.82);
+      imageName   = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+      previewImg.src = imageBase64;
+      imgPreview.style.display = 'block';
+      uploadArea.style.display = 'none';
+      document.getElementById('image-url').value = '';
+      document.getElementById('fw-image').classList.remove('has-error');
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+['dragover','dragleave','drop'].forEach(ev => {
+  uploadArea.addEventListener(ev, e => {
+    e.preventDefault();
+    if (ev==='dragover') uploadArea.classList.add('drag-over');
+    else if (ev==='dragleave') uploadArea.classList.remove('drag-over');
+    else {
+      uploadArea.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        fileInput.files = e.dataTransfer.files;
+        fileInput.dispatchEvent(new Event('change'));
+      }
+    }
+  });
+});
+function removeImage() {
+  imageBase64=null; imageName=null; fileInput.value='';
+  imgPreview.style.display='none'; uploadArea.style.display='block'; previewImg.src='';
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+const v   = id => { const el=document.getElementById(id); return el?(el.value||'').trim():''; };
+const grp = pfx => Array.from(document.querySelectorAll('[id^="'+pfx+'"]:checked')).map(c=>c.value).join(', ');
+const rad = nm  => { const el=document.querySelector('input[name="'+nm+'"]:checked'); return el?el.value:''; };
+const setE = (id,show) => { const el=document.getElementById(id); if(el) el.classList.toggle('has-error',show); };
+const clearE = () => document.querySelectorAll('.has-error').forEach(el=>el.classList.remove('has-error'));
+const plts = () => Array.from(document.querySelectorAll('#platform-chips input:checked')).map(c=>c.value);
+
+function chkGroup(pfx) {
+  return !!document.querySelectorAll('[id^="'+pfx+'"]:checked').length;
+}
+
+// ── Validation ────────────────────────────────────────────────
+function validate() {
+  clearE();
+  let ok=true;
+  const cat     = document.getElementById('category').value;
+  const fashion = isFashion(cat);
+  const beauty  = isBeauty(cat);
+  const selected = plts();
+
+  if (!v('brand-name'))       { setE('fw-brand',    true); ok=false; }
+  if (!cat)                   { setE('fw-category', true); ok=false; }
+  if (!v('price'))            { setE('fw-price',    true); ok=false; }
+  if (!imageBase64 && !v('image-url')) { setE('fw-image', true); ok=false; }
+
+  if (selected.includes('amazon')) {
+    if (!v('az-pt'))  { setE('fw-az-pt',  true); ok=false; }
+    if (!v('az-itk')) { setE('fw-az-itk', true); ok=false; }
+  }
+  if (selected.includes('flipkart')) {
+    if (!v('fk-hsn'))   { setE('fw-fk-hsn',   true); ok=false; }
+    if (!v('fk-gst'))   { setE('fw-fk-gst',   true); ok=false; }
+    if (!v('fk-mfr'))   { setE('fw-fk-mfr',   true); ok=false; }
+    if (!v('fk-model')) { setE('fw-fk-model',  true); ok=false; }
+    if (!v('fk-origin')){ setE('fw-fk-origin', true); ok=false; }
+  }
+  if (selected.includes('myntra')) {
+    if (!v('my-gender'))  { setE('fw-my-gender',  true); ok=false; }
+    if (!v('my-age'))     { setE('fw-my-age',     true); ok=false; }
+    if (!v('my-occasion')){ setE('fw-my-occasion',true); ok=false; }
+    if (!v('my-color'))   { setE('fw-my-color',   true); ok=false; }
+    if (fashion) {
+      if (!v('my-fabric'))  { setE('fw-my-fabric',  true); ok=false; }
+      if (!v('my-fit'))     { setE('fw-my-fit',     true); ok=false; }
+      if (!v('my-sleeve'))  { setE('fw-my-sleeve',  true); ok=false; }
+      if (!v('my-pattern')) { setE('fw-my-pattern', true); ok=false; }
+      if (!chkGroup('ms-')) { setE('fw-my-sizes',   true); ok=false; }
+    }
+  }
+  if (selected.includes('ajio')) {
+    if (fashion) {
+      if (!v('aj-gender'))  { setE('fw-aj-gender',  true); ok=false; }
+      if (!v('aj-occasion')){ setE('fw-aj-occasion',true); ok=false; }
+      if (!v('aj-fabric'))  { setE('fw-aj-fabric',  true); ok=false; }
+      if (!v('aj-fit'))     { setE('fw-aj-fit',     true); ok=false; }
+      if (!v('aj-pattern')) { setE('fw-aj-pattern', true); ok=false; }
+      if (!v('aj-color'))   { setE('fw-aj-color',   true); ok=false; }
+      if (!v('aj-style'))   { setE('fw-aj-style',   true); ok=false; }
+      if (!v('aj-size'))    { setE('fw-aj-size',    true); ok=false; }
+      if (!v('aj-origin'))  { setE('fw-aj-origin',  true); ok=false; }
+      if (!v('aj-care'))    { setE('fw-aj-care',    true); ok=false; }
+    } else {
+      if (!v('aj-style-g'))  { setE('fw-aj-style-g',  true); ok=false; }
+      if (!v('aj-origin-g')) { setE('fw-aj-origin-g', true); ok=false; }
+    }
+  }
+  if (selected.includes('nykaa') && beauty) {
+    if (!v('ny-size'))         { setE('fw-ny-size',    true); ok=false; }
+    if (!v('ny-unit'))         { setE('fw-ny-unit',    true); ok=false; }
+    if (!chkGroup('nyst-'))    { setE('fw-ny-skin',    true); ok=false; }
+    if (!chkGroup('nyc-'))     { setE('fw-ny-concern', true); ok=false; }
+    if (!v('ny-ingr'))         { setE('fw-ny-ingr',    true); ok=false; }
+    if (!v('ny-inci'))         { setE('fw-ny-inci',    true); ok=false; }
+    if (!v('ny-htu'))          { setE('fw-ny-htu',     true); ok=false; }
+    if (!v('ny-shelf'))        { setE('fw-ny-shelf',   true); ok=false; }
+    if (!v('ny-origin'))       { setE('fw-ny-origin',  true); ok=false; }
+    if (!rad('ny-cf'))         { setE('fw-ny-cf',      true); ok=false; }
+    if (!rad('ny-vegan'))      { setE('fw-ny-vegan',   true); ok=false; }
+    if (!rad('ny-derm'))       { setE('fw-ny-derm',    true); ok=false; }
+  }
+  if (selected.includes('meesho')) {
+    if (!v('me-mrp'))   { setE('fw-me-mrp',    true); ok=false; }
+    if (!v('me-sell'))  { setE('fw-me-sell',   true); ok=false; }
+    if (!v('me-pack'))  { setE('fw-me-pack',   true); ok=false; }
+    if (!v('me-origin')){ setE('fw-me-origin', true); ok=false; }
+    if (!v('me-color')) { setE('fw-me-color',  true); ok=false; }
+    if (!v('me-size'))  { setE('fw-me-size',   true); ok=false; }
+  }
+  return ok;
+}
+
+// ── Submit ────────────────────────────────────────────────────
+async function handleSubmit() {
+  if (!validate()) {
+    showToast('Please fill in all required fields');
+    document.querySelector('.has-error')?.scrollIntoView({ behavior:'smooth', block:'center' });
+    return;
+  }
+  const btn = document.getElementById('btn-submit');
+  btn.disabled=true; btn.textContent='Submitting…';
+
+  const payload = {
+    _token: CLIENT_TOKEN,
+    "Brand name":          v('brand-name'),
+    "Product ID":          v('product-id'),
+    "Product price (INR)": v('price'),
+    "Product image URL":   imageBase64?'':v('image-url'),
+    "Product name":        v('product-name'),
+    "Product category":    v('category'),
+    "Key features":        v('key-features'),
+    "Materials or ingredients": v('materials'),
+    "Target customer (product-level override)": v('target-customer'),
+    "Additional image URLs": v('extra-images'),
+    "Competitor product URL": v('competitor-url'),
+    "Existing product description (for rewrite mode)": v('existing-desc'),
+    "Platforms selected":  plts().join(', '),
+    _imageBase64: imageBase64||null,
+    _imageName:   imageName||null,
+    "Amazon — ASIN":                       v('az-asin'),
+    "Amazon — product type taxonomy code": v('az-pt'),
+    "Amazon — item type keyword":          v('az-itk'),
+    "Flipkart — HSN code":                 v('fk-hsn'),
+    "Flipkart — GST tax rate":             v('fk-gst'),
+    "Flipkart — model number":             v('fk-model'),
+    "Flipkart — pack of":                  v('fk-pack')||v('fk-pack-g'),
+    "Flipkart — manufacturer name":        v('fk-mfr'),
+    "Flipkart — manufacturer address":     v('fk-addr')||v('fk-addr-g'),
+    "Flipkart — country of origin":        v('fk-origin'),
+    "Myntra — gender":            v('my-gender'),
+    "Myntra — age group":         v('my-age'),
+    "Myntra — occasion":          v('my-occasion'),
+    "Myntra — fabric":            v('my-fabric'),
+    "Myntra — fit":               v('my-fit'),
+    "Myntra — sleeve type":       v('my-sleeve'),
+    "Myntra — pattern":           v('my-pattern'),
+    "Myntra — primary color":     v('my-color'),
+    "Myntra — sizes available":   grp('ms-'),
+    "Myntra — care instructions": v('my-care'),
+    "Ajio — gender":                     v('aj-gender'),
+    "Ajio — occasion":                   v('aj-occasion'),
+    "Ajio — fabric composition":         v('aj-fabric'),
+    "Ajio — fit":                        v('aj-fit'),
+    "Ajio — pattern":                    v('aj-pattern'),
+    "Ajio — primary color":              v('aj-color'),
+    "Ajio — style code":                 v('aj-style')||v('aj-style-g'),
+    "Ajio — size chart":                 v('aj-size'),
+    "Ajio — material care instructions": v('aj-care'),
+    "Ajio — category path":              v('aj-cat')||v('aj-cat-g'),
+    "Ajio — country of origin":          v('aj-origin')||v('aj-origin-g'),
+    "Nykaa — product size":          v('ny-size'),
+    "Nykaa — size unit":             v('ny-unit'),
+    "Nykaa — skin type":             grp('nyst-'),
+    "Nykaa — skin concern":          grp('nyc-'),
+    "Nykaa — key ingredients":       v('ny-ingr'),
+    "Nykaa — INCI ingredient list":  v('ny-inci'),
+    "Nykaa — how to use":            v('ny-htu'),
+    "Nykaa — shelf life (months)":   v('ny-shelf'),
+    "Nykaa — country of origin":     v('ny-origin'),
+    "Nykaa — cruelty free?":         rad('ny-cf'),
+    "Nykaa — vegan?":                rad('ny-vegan'),
+    "Nykaa — dermatologist tested?": rad('ny-derm'),
+    "Nykaa — free from claims":      grp('nyff-'),
+    "Meesho — MRP":               v('me-mrp'),
+    "Meesho — selling price":     v('me-sell'),
+    "Meesho — pack of":           v('me-pack'),
+    "Meesho — primary color":     v('me-color'),
+    "Meesho — size or dimensions":v('me-size'),
+    "Meesho — country of origin": v('me-origin'),
+  };
+
+  try {
+    const r    = await fetch(WEB_APP_URL, { method:'POST', body:JSON.stringify(payload) });
+    const data = await r.json();
+    if (data.status==='success') {
+      document.getElementById('form-view').style.display = 'none';
+      document.getElementById('success').style.display   = 'block';
+      document.getElementById('res-pid').textContent = 'Product ID: ' + data.productId;
+      document.getElementById('res-bid').textContent = 'Brand ID: '   + (data.brandId||'n/a');
+      window.scrollTo({ top:0, behavior:'smooth' });
+    } else {
+      showToast('Error: ' + (data.message||'Submission failed'));
+      btn.disabled=false; btn.textContent='Submit product';
+    }
+  } catch {
+    showToast('Network error — check Web App URL');
+    btn.disabled=false; btn.textContent='Submit product';
+  }
+}
+
+// ── Reset ─────────────────────────────────────────────────────
+function resetForm() {
+  document.getElementById('form-view').style.display = 'block';
+  document.getElementById('success').style.display   = 'none';
+  document.querySelectorAll('input[type=text],input[type=number],input[type=url],textarea').forEach(el=>el.value='');
+  document.querySelectorAll('select').forEach(el=>el.selectedIndex=0);
+  document.querySelectorAll('input[type=checkbox],input[type=radio]').forEach(el=>el.checked=false);
+  document.querySelectorAll('#platform-chips input').forEach(cb=>{
+    cb.checked=false;
+    const sec=document.getElementById('section-'+cb.value);
+    if(sec) sec.classList.remove('on');
+  });
+  document.querySelectorAll('.dyn').forEach(el=>el.classList.remove('on'));
+  removeImage();
+  document.getElementById('btn-submit').disabled=false;
+  document.getElementById('btn-submit').textContent='Submit product';
+  loadBrands();
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+</script>
+</body>
+</html>
