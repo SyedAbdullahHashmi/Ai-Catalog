@@ -1188,7 +1188,7 @@ async function handleSubmit() {
       document.getElementById('form-view').style.display = 'none';
       document.getElementById('success').style.display   = 'block';
       document.getElementById('res-pid').textContent = 'Product ID: ' + data.productId;
-      document.getElementById('res-bid').textContent = 'Brand ID: '   + (data.brandId||'n/a');
+      document.getElementById('res-bid').textContent = 'brand_id: '   + (data.brandId||'n/a');
       window.scrollTo({ top:0, behavior:'smooth' });
     } else {
       showToast('Error: ' + (data.message||'Submission failed'));
